@@ -2,11 +2,23 @@
 
 #include "vendor/stb_image/stb_image.h"
 
+#include <iostream>
+
 Texture::Texture(const std::string& path)
 	: m_RendererID(0), m_FilePath(path), m_LocalBuffer(nullptr), m_Width(0), m_Height(0), m_BPP(0)
 {
 	stbi_set_flip_vertically_on_load(1); //sets the image upsidown because OGL sets (0,0) bottom left of an image
 	m_LocalBuffer = stbi_load(path.c_str(), &m_Width, &m_Height, &m_BPP, 4);
+
+	if (!m_LocalBuffer)
+	{
+		std::cout << "Failed to load texture " << path << "\n";
+		std::cout << "stb_image error: " << stbi_failure_reason() << "\n";
+	}
+	else
+	{
+		std::cout << "Loaded texture: " << path << " ( " << m_Width << "x" << m_Height << ", " << m_BPP << ")\n";
+	}
 
 	GLCall(glGenTextures(1, &m_RendererID));
 	GLCall(glBindTexture(GL_TEXTURE_2D, m_RendererID));
