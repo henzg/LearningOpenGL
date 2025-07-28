@@ -60,11 +60,15 @@ int main(void)
             2, 3, 0
         };
 
+        GLCall(glEnable(GL_BLEND));
+        GLCall(glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
+        
+
         // creates vao for core profile
         unsigned int vao;
         GLCall(glGenVertexArrays(1, &vao));
         GLCall(glBindVertexArray(vao));
-
+        
 
         // vertex array init
         VertexArray va;
@@ -83,7 +87,7 @@ int main(void)
         shader.Bind();
         shader.SetUniform4f("u_Color", 0.8f, 0.3f, 0.8f, 1.0f);
 
-        Texture texture("res/textures/bird.png");
+        Texture texture("res/textures/lion .png");
         texture.Bind();
         shader.SetUniform1i("u_Texture", 0); // 0 in this case should match the slot that the texture is bound to 
 
