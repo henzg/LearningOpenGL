@@ -17,6 +17,10 @@
 #include "glm/glm.hpp"
 #include "glm/gtc/matrix_transform.hpp"
 
+#include "imgui/imgui.h"
+#include "imgui/imgui_impl_glfw.h"
+#include "imgui/imgui_impl_opengl3.h"
+
 int main(void)
 {
     GLFWwindow* window;
@@ -32,7 +36,7 @@ int main(void)
 
 
     /* Create a windowed mode window and its OpenGL context */
-    window = glfwCreateWindow(640, 480, "ZacStack.dev", nullptr, nullptr);
+    window = glfwCreateWindow(960, 580, "ZacStack.dev", nullptr, nullptr);
     if (!window)
     {
         glfwTerminate();
@@ -51,10 +55,10 @@ int main(void)
     std::cout << glGetString(GL_VERSION) << "\n";
     {
         float positions[] = {
-            -0.5f, -0.5f, 0.0f, 0.0f,   //0
-             0.5f, -0.5f, 1.0f, 0.0f,   //1
-             0.5f,  0.5f, 1.0f, 1.0f,   //2
-            -0.5f,  0.5f, 0.0f, 1.0f    //3
+             100.f, 100.f, 0.0f, 0.0f,   //0 x,y,
+             200.f, 100.f, 1.0f, 0.0f,   //1
+             200.f, 200.f, 1.0f, 1.0f,   //2
+             100.f, 200.f, 0.0f, 1.0f    //3
         };
 
         unsigned int indicies[] =
@@ -66,7 +70,6 @@ int main(void)
         GLCall(glEnable(GL_BLEND));
         GLCall(glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
         
-
         // creates vao for core profile
         unsigned int vao;
         GLCall(glGenVertexArrays(1, &vao));
@@ -86,12 +89,16 @@ int main(void)
         // creates index buffer
         IndexBuffer ib(indicies, 6);
 
-        glm::mat4 proj = glm::ortho(-2.f, 2.f, -1.5f, 1.5f, -1.f, 1.f);
+        glm::mat4 proj = glm::ortho(0.f, 960.f, -0.f, 540.f, -1.f, 1.f); // example is in perpixle
+        glm::mat4 view = glm::translate(glm::mat4(1.f), glm::vec3(-100, 0, 0)); // position of camera
+        glm::mat4 model = glm::translate(glm::mat4(1.f), glm::vec3(200, 200, 0));
+
+        glm::mat4 mvp = proj * view * model; // model view projection model -> view -> projection
 
         Shader shader("res/shaders/Basic.shader");
         shader.Bind();
         shader.SetUniform4f("u_Color", 0.8f, 0.3f, 0.8f, 1.0f);
-        shader.SetUniformMat4f("u_MVP", proj);
+        shader.SetUniformMat4f("u_MVP", mvp);
 
         Texture texture("res/textures/lion.png");
         texture.Bind();
@@ -105,9 +112,19 @@ int main(void)
 
         Renderer renderer;
 
+        ImGui::CreateContext();
+        ImGuiIO& io = ImGui::GetIO(); (void)io;
+        ImGui_ImplGlfw_InitForOpenGL(window, true);
+        ImGui::StyleColorsDark();
+        ImGui_ImplOpenGL3_Init();
+
         // set r variable for red color
         float r = 0.0f;
         float increment = 0.05f;
+
+		bool show_demo_window = true;
+		bool show_another_window = false;
+		ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
 
         /* Loop until the user closes the window */
         while (!glfwWindowShouldClose(window))
@@ -115,6 +132,10 @@ int main(void)
             /* Render here */
             renderer.Clear();
 
+            ImGui_ImplOpenGL3_NewFrame();
+            ImGui_ImplGlfw_NewFrame();
+            ImGui::NewFrame();
+            ImGui::ShowDemoWindow();
 
             //shader.Bind();
             shader.Bind();
@@ -129,6 +150,32 @@ int main(void)
                 increment = 0.05f;
 
             r += increment;
+            // sample imgui code
+			//{
+			//	static float f = 0.0f;
+			//	static int counter = 0;
+
+			//	ImGui::Begin("Hello, world!");                          // Create a window called "Hello, world!" and append into it.
+
+			//	ImGui::Text("This is some useful text.");               // Display some text (you can use a format strings too)
+			//	ImGui::Checkbox("Demo Window", &show_demo_window);      // Edit bools storing our window open/close state
+			//	ImGui::Checkbox("Another Window", &show_another_window);
+
+			//	ImGui::SliderFloat("float", &f, 0.0f, 1.0f);            // Edit 1 float using a slider from 0.0f to 1.0f
+			//	ImGui::ColorEdit3("clear color", (float*)&clear_color); // Edit 3 floats representing a color
+
+			//	if (ImGui::Button("Button"))                            // Buttons return true when clicked (most widgets return true when edited/activated)
+			//		counter++;
+			//	ImGui::SameLine();
+			//	ImGui::Text("counter = %d", counter);
+
+			//	ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / io.Framerate, io.Framerate);
+			//	ImGui::End();
+			//}
+
+            // imgui rendering
+            ImGui::Render();
+            ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 
             /* Swap front and back buffers */
             glfwSwapBuffers(window);
@@ -137,6 +184,10 @@ int main(void)
             glfwPollEvents();
         }
     }
+    // shutdown 1.imgui 2.glfw
+	ImGui_ImplOpenGL3_Shutdown();
+	ImGui_ImplGlfw_Shutdown();
+	ImGui::DestroyContext();
     glfwTerminate();
     return 0;
 }
