@@ -5,6 +5,8 @@
 
 #include <glm/glm.hpp>
 
+/* Shader tells gpu how and why we wanna draw */
+
 struct ShaderProgramSource
 {
 	std::string VertexSource;

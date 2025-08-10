@@ -2,6 +2,8 @@
 
 #include "VertexBuffer.h"
 
+/* Tells what we wanna draw */
+
 class VertexBufferLayout;
 
 class VertexArray
